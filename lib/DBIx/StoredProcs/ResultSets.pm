@@ -12,7 +12,7 @@ role {
     my %args = @_;
     my $consumer = $args{consumer};
 
-    has resultsets => (
+    has '_resultsets' => (
         is => 'ro',
         isa => 'ArrayRef',
         auto_deref => 1,

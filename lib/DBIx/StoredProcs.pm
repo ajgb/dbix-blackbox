@@ -144,32 +144,12 @@ $Data::Dumper::Indent=1;
 use Devel::StackTrace;
 use Scalar::Util qw( refaddr );
 
-    has '_conn' => (
-        is => 'rw',
-        isa => 'DBIx::Connector',
-        lazy_build => 1,
-#        default => sub {
-#            DBIx::Connector->new( $p->connect_info );
-#        }
-    );
-
-
-    sub _build__conn {
-        my $self = shift;
-
-        warn "++ building _conn";
-        warn "self: ", refaddr $self;
-#        warn Devel::StackTrace->new->as_string;
-
-        return DBIx::Connector->new( $self->connect_info );
-    }
-
 role {
     my $p = shift;
     my %args = @_;
     my $consumer = $args{consumer};
 
-    warn "**** consumer: ", $consumer->name;
+#    warn "**** consumer: ", $consumer->name;
 #    die Dumper $p;
 #    die Dumper \%args;
 
@@ -181,6 +161,39 @@ role {
             $p->connect_info,
         }
     );
+
+    has '_conn' => (
+        is => 'rw',
+        isa => 'DBIx::StoredProcs::Driver',
+        lazy_build => 1,
+#        default => sub {
+#            DBIx::Connector->new( $p->connect_info );
+#        }
+    );
+
+
+    sub _build__conn {
+        my $self = shift;
+
+#        warn "++ building _conn";
+#        warn "self: ", refaddr $self;
+#        warn Devel::StackTrace->new->as_string;
+
+        my @coninfo = $self->connect_info;
+
+        my $dsn = $coninfo[0];
+        my (undef, $driver) = DBI->parse_dsn( $dsn );
+#        warn "driver: $driver";
+
+        my $db_class = "DBIx::StoredProcs::Driver::$driver";
+        Class::MOP::load_class( $db_class );
+
+        return $db_class->new(
+            connector => DBIx::Connector->new( @coninfo )
+        );
+    }
+
+
     method 'proc' => sub {
         my ($self, $name) = @_;
 
@@ -194,9 +207,9 @@ role {
             DBIx::StoredProcs::Procedure->meta->apply( $proc_meta );
         }
         $proc_meta->add_attribute(
-            __dbix_connector_cache => (
+            __dbix_sp_db_driver_cache => (
                 is => 'ro',
-                isa => 'DBIx::Connector',
+                isa => 'DBIx::StoredProcs::Driver',
                 default => sub { $self->_conn },
             )
         );
