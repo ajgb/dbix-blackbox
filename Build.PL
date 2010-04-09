@@ -9,6 +9,7 @@ my $builder = Module::Build->new(
     dist_version_from   => 'lib/DBIx/StoredProcs.pm',
     build_requires => {
         'Test::More' => 0,
+        'MooseX::Role::Parameterized' => 0.18,
     },
     add_to_cleanup      => [ 'DBIx-StoredProcs-*' ],
     create_makefile_pl => 'traditional',
