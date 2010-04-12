@@ -399,7 +399,7 @@ use Scalar::Util qw( refaddr );
 my $dbsp = MyDBSP->new();
 
 
-my $rs = $dbsp->proc('ListCatalogStructure')->exec(
+my $rs = $dbsp->exec('ListCatalogStructure',
     catalog => 'trainingexpert',
     parent_id => $ARGV[0] || 5895,
 );

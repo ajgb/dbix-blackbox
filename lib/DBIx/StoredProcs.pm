@@ -166,17 +166,22 @@ role {
         is => 'rw',
         isa => 'DBIx::StoredProcs::Driver',
         lazy_build => 1,
-#        default => sub {
-#            DBIx::Connector->new( $p->connect_info );
-#        }
     );
 
+    after 'new' => sub {
+        my $proc_class_ns = join('::', $consumer->name, 'Procs' );
+        my @mods = Module::Find::findallmod( $proc_class_ns );
+        Class::MOP::load_class( $_ )
+            for @mods;
+
+        Class::MOP::load_class( 'DBIx::StoredProcs::Procedure' );
+    };
 
     sub _build__conn {
         my $self = shift;
 
-#        warn "++ building _conn";
-#        warn "self: ", refaddr $self;
+        warn "++ building _conn";
+        warn "self: ", refaddr $self;
 #        warn Devel::StackTrace->new->as_string;
 
         my @coninfo = $self->connect_info;
@@ -194,28 +199,19 @@ role {
     }
 
 
-    method 'proc' => sub {
-        my ($self, $name) = @_;
+    method 'exec' => sub {
+        my ($self, $name, %args) = @_;
 
-        my $proc_class = join('::', $consumer->name, 'Procs', $name );
-        Class::MOP::load_class( $proc_class );
-
+        my $proc_class_ns = join('::', $consumer->name, 'Procs', $name );
         my $proc_meta = $proc_class->meta;
 
         unless ( $proc_meta->does_role('DBIx::StoredProcs::Procedure') ) {
-            Class::MOP::load_class( 'DBIx::StoredProcs::Procedure' );
             DBIx::StoredProcs::Procedure->meta->apply( $proc_meta );
         }
-        $proc_meta->add_attribute(
-            __dbix_sp_db_driver_cache => (
-                is => 'ro',
-                isa => 'DBIx::StoredProcs::Driver',
-                default => sub { $self->_conn },
-            )
-        );
 
-        return $proc_class;
-        return $proc_class->new;
+        my $rs = $proc_class->new( %args );
+
+        return $rs->exec( $self->_conn );
     }
 };
 

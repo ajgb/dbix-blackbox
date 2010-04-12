@@ -12,15 +12,7 @@ use DBIx::StoredProcs::Result;
 
 
 sub exec {
-    my $class = ref $_[0] ? ref shift : shift;
-    my %args = @_;
-
-    my $self = $class->new( %args );
-
-#    die Dumper $self->meta;
-#    warn "exec(", Dumper(\%args), ")";
-
-    my $dbdriver = $self->__dbix_sp_db_driver_cache;
+    my ($self, $dbdriver) = @_;
 
 #    warn "self: ", ref $self;
 #    warn "self: ", refaddr $self;
@@ -28,7 +20,7 @@ sub exec {
 
     my %params = map {
         $_ => $self->$_
-    } grep { ! /^_/ } $self->meta->get_attribute_list;
+    } $self->meta->get_attribute_list;
 
     my $params = $self->_args2procparams( \%params );
 
