@@ -3,6 +3,7 @@ package DBIx::StoredProcs;
 use MooseX::Role::Parameterized;
 
 use DBIx::Connector;
+use Module::Find qw( findallmod );
 
 =head1 NAME
 
@@ -34,7 +35,7 @@ Describe procedures
     package MyDBSP::Procs::ListCatalogs;
     use Moose;
 
-    with 'DBIx::StoredProcs::ResultSets' => {
+    with 'DBIx::StoredProcs::Procedure' => {
         resultsets => [qw(
             MyDBSP::ResultSet::Catalogs
             MyDBSP::ResultSet::CatalogData
@@ -170,7 +171,7 @@ role {
 
     after 'new' => sub {
         my $proc_class_ns = join('::', $consumer->name, 'Procs' );
-        my @mods = Module::Find::findallmod( $proc_class_ns );
+        my @mods = findallmod( $proc_class_ns );
         Class::MOP::load_class( $_ )
             for @mods;
 
@@ -180,8 +181,8 @@ role {
     sub _build__conn {
         my $self = shift;
 
-        warn "++ building _conn";
-        warn "self: ", refaddr $self;
+#        warn "++ building _conn";
+#        warn "self: ", refaddr $self;
 #        warn Devel::StackTrace->new->as_string;
 
         my @coninfo = $self->connect_info;
@@ -202,7 +203,7 @@ role {
     method 'exec' => sub {
         my ($self, $name, %args) = @_;
 
-        my $proc_class_ns = join('::', $consumer->name, 'Procs', $name );
+        my $proc_class = join('::', $consumer->name, 'Procs', $name );
         my $proc_meta = $proc_class->meta;
 
         unless ( $proc_meta->does_role('DBIx::StoredProcs::Procedure') ) {
