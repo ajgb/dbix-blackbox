@@ -10,6 +10,8 @@ $Data::Dumper::Indent=1;
 use Devel::StackTrace;
 use Scalar::Util qw( refaddr );
 
+my $ALL = 1;
+
 {
     package MyDBSP;
     use Moose;
@@ -17,8 +19,10 @@ use Scalar::Util qw( refaddr );
     with 'DBIx::BlackBox' => {
         connect_info => [
             'dbi:Sybase:server=kp-dev3',
+#            'dbi:Sybase:server=kpdb2',
             'tds_test',
             'p@$$word',
+#            'pass30rd',
             {
                 RaiseError => 1,
                 PrintError => 0,
@@ -26,17 +30,16 @@ use Scalar::Util qw( refaddr );
         ]
     };
 
-    package MyDBSP::Procs::ListCatalogs;
+    package MyDBSP::Procedures::ListCatalogs;
     use Moose;
     use Scalar::Util qw( refaddr );
 
     with 'DBIx::BlackBox::Procedure' => {
+        name => 'error_test',
         resultsets => [qw(
             MyDBSP::ResultSet::Catalogs
         )],
     };
-
-    sub procedure_name { 'error_test' };
 
     has 'root_id' => (
         is => 'rw',
@@ -48,18 +51,17 @@ use Scalar::Util qw( refaddr );
         isa => 'Maybe[Int]',
     );
 
-    package MyDBSP::Procs::ListCatalogsWithData;
+    package MyDBSP::Procedures::ListCatalogsWithData;
     use Moose;
 
     with 'DBIx::BlackBox::Procedure' => {
+        name => 'error_test2',
         resultsets => [qw(
             MyDBSP::ResultSet::Catalogs
             MyDBSP::ResultSet::CatalogData
         )],
     };
 
-    sub procedure_name { 'error_test2' };
-
     has 'root_id' => (
         is => 'rw',
         isa => 'Int',
@@ -70,21 +72,25 @@ use Scalar::Util qw( refaddr );
         isa => 'Maybe[Int]',
     );
 
-    package MyDBSP::Procs::ErrorTest3;
-    use Moose;
-
-    sub procedure_name { 'error_test3' };
-
-    package MyDBSP::Procs::ListCatalogStructure;
+    package MyDBSP::Procedures::ErrorTest3;
     use Moose;
 
     with 'DBIx::BlackBox::Procedure' => {
+        name => 'error_test3',
         resultsets => [qw(
             MyDBSP::ResultSet::CatalogStructure
         )],
     };
 
-    sub procedure_name { 'CBS_Live..list_catalog_structure' };
+    package MyDBSP::Procedures::ListCatalogStructure;
+    use Moose;
+
+    with 'DBIx::BlackBox::Procedure' => {
+        name => 'CBS_Live..list_catalog_structure',
+        resultsets => [qw(
+            MyDBSP::ResultSet::CatalogStructure
+        )],
+    };
 
     has 'catalog' => (
         is => 'rw',
@@ -176,15 +182,18 @@ use Text::TabularDisplay;
 
 my $dbsp = MyDBSP->new();
 
+print $dbsp->_conn->connector->dbh->{syb_oc_version}, "\n";
+print $dbsp->_conn->connector->dbh->{syb_server_version}, "\n";
+print $dbsp->_conn->connector->dbh->{syb_server_version_string}, "\n";
 
-if (0) {
+if (0 || $ALL) {
     my $rs = $dbsp->exec('ErrorTest3');
 
     print "proc_res: ", $rs->procedure_result, "\n";
 
 }
 
-if (0) {
+if (0 || $ALL) {
 
     my $rs = $dbsp->exec('ListCatalogStructure',
         catalog => 'trainingexpert',
@@ -209,7 +218,7 @@ if (0) {
     print "proc_res: ", $rs->procedure_result, "\n";
 }
 
-if (0) {
+if (0 || $ALL) {
 
     my $rs = $dbsp->exec('ListCatalogs',
         root_id => 1,
@@ -233,7 +242,7 @@ if (0) {
 
 }
 
-if (0) {
+if (0 || $ALL) {
 
     my $rs = $dbsp->exec('ListCatalogsWithData',
         root_id => 1,
@@ -290,27 +299,19 @@ if (0) {
 }
 
 
-if (0) {
+if (0 || $ALL) {
 
     my $rs = $dbsp->exec('ListCatalogsWithData',
         root_id => 1,
         org_id => 2,
     );
 
+    my @columns = (
+        [qw( id name )],
+        [qw( id hierarchy description )],
+    );
     do {
-        my @c;
-        if ( $rs->idx ) {
-            @c = qw(
-                id
-                hierarchy
-                description
-            );
-        } else {
-            @c = qw(
-                id
-                name
-            );
-        }
+        my @c = @{ $columns[ $rs->idx ] };
         my $t = Text::TabularDisplay->new( @c );
         while ( my $row = $rs->next_row ) {
             $t->add( map { $row->$_ } @c );
@@ -323,7 +324,7 @@ if (0) {
 }
 
  
-if (0) {
+if (0 || $ALL) {
 
     my ( $catalogs, $data, $rv ) = $dbsp->exec('ListCatalogsWithData',
         root_id => 1,
