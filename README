@@ -1,4 +1,4 @@
-DBIx-StoredProcs
+DBIx-BlackBox
 
 The README is used to introduce the module and provide instructions on
 how to install the module, any machine dependencies it may have (for
@@ -26,21 +26,21 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc DBIx::StoredProcs
+    perldoc DBIx::BlackBox
 
 You can also look for information at:
 
     RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=DBIx-StoredProcs
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=DBIx-BlackBox
 
     AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/DBIx-StoredProcs
+        http://annocpan.org/dist/DBIx-BlackBox
 
     CPAN Ratings
-        http://cpanratings.perl.org/d/DBIx-StoredProcs
+        http://cpanratings.perl.org/d/DBIx-BlackBox
 
     Search CPAN
-        http://search.cpan.org/dist/DBIx-StoredProcs/
+        http://search.cpan.org/dist/DBIx-BlackBox/
 
 
 LICENSE AND COPYRIGHT

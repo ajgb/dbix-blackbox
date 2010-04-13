@@ -1,9 +1,9 @@
 
-package DBIx::StoredProcs::Procedure;
+package DBIx::BlackBox::Procedure;
 
 use MooseX::Role::Parameterized;
 
-use DBIx::StoredProcs::Result;
+use DBIx::BlackBox::Result;
 
 parameter resultsets => (
     isa => 'ArrayRef',
@@ -39,7 +39,7 @@ role {
             }
         );
 
-        return DBIx::StoredProcs::Result->new(
+        return DBIx::BlackBox::Result->new(
             db_driver => $db_driver,
             resultsets => $p->resultsets, 
         );

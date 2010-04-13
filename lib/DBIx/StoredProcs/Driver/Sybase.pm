@@ -1,9 +1,9 @@
 
-package DBIx::StoredProcs::Driver::Sybase;
+package DBIx::BlackBox::Driver::Sybase;
 
 use Moose;
 
-extends qw( DBIx::StoredProcs::Driver );
+extends qw( DBIx::BlackBox::Driver );
 
 has '+_result_types' => (
     default => sub {

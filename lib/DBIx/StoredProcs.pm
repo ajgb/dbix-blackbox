@@ -1,4 +1,4 @@
-package DBIx::StoredProcs;
+package DBIx::BlackBox;
 
 use MooseX::Role::Parameterized;
 
@@ -8,7 +8,7 @@ use Module::Find qw( findallmod );
 
 =head1 NAME
 
-DBIx::StoredProcs - ORM using stored procedures.
+DBIx::BlackBox - ORM using stored procedures.
 
 =cut
 
@@ -23,7 +23,7 @@ Setup base class
     package MyDBSP;
     use Moose;
 
-    with 'DBIx::StoredProcs' => {
+    with 'DBIx::BlackBox' => {
         connect_info => [
             'dbi:Sybase:server=sqlserver',
             'username',
@@ -40,7 +40,7 @@ Describe procedures
     package MyDBSP::Procs::ListCatalogs;
     use Moose;
 
-    with 'DBIx::StoredProcs::Procedure' => {
+    with 'DBIx::BlackBox::Procedure' => {
         resultsets => [qw(
             MyDBSP::ResultSet::Catalogs
             MyDBSP::ResultSet::CatalogData
@@ -169,7 +169,7 @@ role {
 
     has '_conn' => (
         is => 'rw',
-        isa => 'DBIx::StoredProcs::Driver',
+        isa => 'DBIx::BlackBox::Driver',
         lazy_build => 1,
     );
 
@@ -191,7 +191,7 @@ role {
             my $dsn = $coninfo[0];
             my (undef, $driver) = DBI->parse_dsn( $dsn );
 
-            $db_class = "DBIx::StoredProcs::Driver::$driver";
+            $db_class = "DBIx::BlackBox::Driver::$driver";
         };
         Class::MOP::load_class( $db_class );
 
@@ -206,8 +206,8 @@ role {
         my $proc_class = join('::', $consumer->name, 'Procs', $name );
         my $proc_meta = $proc_class->meta;
 
-        unless ( $proc_meta->does_role('DBIx::StoredProcs::Procedure') ) {
-            DBIx::StoredProcs::Procedure->meta->apply( $proc_meta );
+        unless ( $proc_meta->does_role('DBIx::BlackBox::Procedure') ) {
+            DBIx::BlackBox::Procedure->meta->apply( $proc_meta );
         }
 
         my $proc = $proc_class->new( %args );
@@ -226,7 +226,7 @@ Alex J. G. Burzyński, C<< <ajgb at cpan.org> >>
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-dbix-storedprocs at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBIx-StoredProcs>.  I will be notified, and then you'll
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBIx-BlackBox>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
 
@@ -236,7 +236,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc DBIx::StoredProcs
+    perldoc DBIx::BlackBox
 
 
 You can also look for information at:
@@ -245,19 +245,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=DBIx-StoredProcs>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=DBIx-BlackBox>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/DBIx-StoredProcs>
+L<http://annocpan.org/dist/DBIx-BlackBox>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/DBIx-StoredProcs>
+L<http://cpanratings.perl.org/d/DBIx-BlackBox>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/DBIx-StoredProcs/>
+L<http://search.cpan.org/dist/DBIx-BlackBox/>
 
 =back
 
@@ -278,4 +278,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of DBIx::StoredProcs
+1; # End of DBIx::BlackBox

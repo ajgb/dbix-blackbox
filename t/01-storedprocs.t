@@ -14,7 +14,7 @@ use Scalar::Util qw( refaddr );
     package MyDBSP;
     use Moose;
 
-    with 'DBIx::StoredProcs' => {
+    with 'DBIx::BlackBox' => {
         connect_info => [
             'dbi:Sybase:server=kp-dev3',
             'tds_test',
@@ -30,7 +30,7 @@ use Scalar::Util qw( refaddr );
     use Moose;
     use Scalar::Util qw( refaddr );
 
-    with 'DBIx::StoredProcs::Procedure' => {
+    with 'DBIx::BlackBox::Procedure' => {
         resultsets => [qw(
             MyDBSP::ResultSet::Catalogs
         )],
@@ -51,7 +51,7 @@ use Scalar::Util qw( refaddr );
     package MyDBSP::Procs::ListCatalogsWithData;
     use Moose;
 
-    with 'DBIx::StoredProcs::Procedure' => {
+    with 'DBIx::BlackBox::Procedure' => {
         resultsets => [qw(
             MyDBSP::ResultSet::Catalogs
             MyDBSP::ResultSet::CatalogData
@@ -78,7 +78,7 @@ use Scalar::Util qw( refaddr );
     package MyDBSP::Procs::ListCatalogStructure;
     use Moose;
 
-    with 'DBIx::StoredProcs::Procedure' => {
+    with 'DBIx::BlackBox::Procedure' => {
         resultsets => [qw(
             MyDBSP::ResultSet::CatalogStructure
         )],

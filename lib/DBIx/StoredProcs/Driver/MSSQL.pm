@@ -1,6 +1,6 @@
 
-package DBIx::StoredProcs::Driver::MSSQL;
+package DBIx::BlackBox::Driver::MSSQL;
 
 use Moose;
 
-extends qw( DBIx::StoredProcs::Driver::Sybase );
+extends qw( DBIx::BlackBox::Driver::Sybase );

@@ -1,5 +1,5 @@
 
-package DBIx::StoredProcs::Driver;
+package DBIx::BlackBox::Driver;
 
 use Moose;
 

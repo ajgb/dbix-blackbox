@@ -1,11 +1,11 @@
 
-package DBIx::StoredProcs::Result;
+package DBIx::BlackBox::Result;
 
 use Moose;
 
 has 'db_driver' => (
     is => 'rw',
-    isa => 'DBIx::StoredProcs::Driver',
+    isa => 'DBIx::BlackBox::Driver',
 );
 
 has '_procedure_result' => (

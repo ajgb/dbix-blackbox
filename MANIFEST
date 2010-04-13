@@ -2,7 +2,7 @@ Build.PL
 Changes
 MANIFEST
 README
-lib/DBIx/StoredProcs.pm
+lib/DBIx/BlackBox.pm
 t/00-load.t
 t/manifest.t
 t/pod-coverage.t

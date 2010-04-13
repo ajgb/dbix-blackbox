@@ -1,5 +1,5 @@
 
-package DBIx::StoredProcs::Row;
+package DBIx::BlackBox::Row;
 
 use Moose;
 
