@@ -3,6 +3,7 @@ package DBIx::StoredProcs;
 use MooseX::Role::Parameterized;
 
 use DBIx::Connector;
+use DBI;
 use Module::Find qw( findallmod );
 
 =head1 NAME
@@ -27,6 +28,10 @@ Setup base class
             'dbi:Sybase:server=sqlserver',
             'username',
             'password',
+            {
+                RaiseError = 1,
+                PrintError = 0,
+            }
         ]
     };
 
@@ -91,12 +96,14 @@ and then
 
 execute stored procedure and get result object to iterate over
 
-    my $rs = $dbsp->proc('ListCatalogs')->exec(
-        root_id => $root_id,
-        org_id => $org_id,
-    );
-
-    die $rs->errstr if $rs->error;
+    my $rs = eval {
+        $dbsp->exec('ListCatalogs',
+            root_id => $root_id,
+            org_id => $org_id,
+        );
+    } or do {
+        die $@;
+    }
 
     while ( my $rs = $rs->next ) {
         # 1st ref $rs eq MyDBSP::ResultSet::Catalogs
@@ -108,7 +115,7 @@ execute stored procedure and get result object to iterate over
 
 or get all rows at once
     
-    my ( $catalogs, $data ) = $dbsp->proc('ListCatalogs')->exec(
+    my ( $catalogs, $data, $rv ) = $dbsp->exec('ListCatalogs',
         root_id => $root_id,
         org_id => $org_id,
     )->all;
@@ -121,11 +128,17 @@ or get all rows at once
         print $row->description;
     }
 
+    print "procedure result: $rv";
+
 =cut
 
 parameter connect_info => (
     isa => 'ArrayRef',
     required => 1,
+);
+
+parameter db_driver => (
+    isa => 'Maybe[Str]',
 );
 
 =head1 METHODS
@@ -140,19 +153,10 @@ Connect to database
 
 =cut
 
-use Data::Dumper;
-$Data::Dumper::Indent=1;
-use Devel::StackTrace;
-use Scalar::Util qw( refaddr );
-
 role {
     my $p = shift;
     my %args = @_;
     my $consumer = $args{consumer};
-
-#    warn "**** consumer: ", $consumer->name;
-#    die Dumper $p;
-#    die Dumper \%args;
 
     has 'connect_info' => (
         is => 'ro',
@@ -169,36 +173,32 @@ role {
         lazy_build => 1,
     );
 
-    after 'new' => sub {
+    before 'new' => sub {
         my $proc_class_ns = join('::', $consumer->name, 'Procs' );
         my @mods = findallmod( $proc_class_ns );
         Class::MOP::load_class( $_ )
             for @mods;
 
-        Class::MOP::load_class( 'DBIx::StoredProcs::Procedure' );
     };
 
-    sub _build__conn {
+    method '_build__conn' => sub {
         my $self = shift;
-
-#        warn "++ building _conn";
-#        warn "self: ", refaddr $self;
-#        warn Devel::StackTrace->new->as_string;
 
         my @coninfo = $self->connect_info;
 
-        my $dsn = $coninfo[0];
-        my (undef, $driver) = DBI->parse_dsn( $dsn );
-#        warn "driver: $driver";
+        my $db_class;
+        unless ( $db_class = $p->db_driver ) { 
+            my $dsn = $coninfo[0];
+            my (undef, $driver) = DBI->parse_dsn( $dsn );
 
-        my $db_class = "DBIx::StoredProcs::Driver::$driver";
+            $db_class = "DBIx::StoredProcs::Driver::$driver";
+        };
         Class::MOP::load_class( $db_class );
 
         return $db_class->new(
             connector => DBIx::Connector->new( @coninfo )
         );
-    }
-
+    };
 
     method 'exec' => sub {
         my ($self, $name, %args) = @_;
@@ -210,9 +210,9 @@ role {
             DBIx::StoredProcs::Procedure->meta->apply( $proc_meta );
         }
 
-        my $rs = $proc_class->new( %args );
+        my $proc = $proc_class->new( %args );
 
-        return $rs->exec( $self->_conn );
+        return $proc->exec( $self->_conn->clone );
     }
 };
 

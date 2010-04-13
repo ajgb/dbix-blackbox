@@ -20,8 +20,8 @@ use Scalar::Util qw( refaddr );
             'tds_test',
             'p@$$word',
             {
-                RaiseError => 0,
-                ShowErrorStatement => 0,
+                RaiseError => 1,
+                PrintError => 0,
             }
         ]
     };
@@ -240,6 +240,63 @@ if (0) {
         org_id => 2,
     );
 
+    my $rs2 = $dbsp->exec('ListCatalogs',
+        root_id => 1,
+        org_id => 2,
+    );
+
+
+    do {
+        if ( $rs->idx == 0 ) {
+            do {
+                my @c = qw(
+                    id
+                    name
+                );
+
+                my $t = Text::TabularDisplay->new( @c );
+                while ( my $row = $rs2->next_row ) {
+                    $t->add( map { $row->$_ } @c );
+                }
+                print "**\n", $t->render, "\n**\n";
+            } while ( $rs2->next_resultset );
+
+            print "** proc_res: ", $rs2->procedure_result, "\n";
+
+        }
+
+        my @c;
+        if ( $rs->idx ) {
+            @c = qw(
+                id
+                hierarchy
+                description
+            );
+        } else {
+            @c = qw(
+                id
+                name
+            );
+        }
+        my $t = Text::TabularDisplay->new( @c );
+        while ( my $row = $rs->next_row ) {
+            $t->add( map { $row->$_ } @c );
+        }
+        print $t->render, "\n";
+    } while ( $rs->next_resultset );
+
+    print "proc_res: ", $rs->procedure_result, "\n";
+
+}
+
+
+if (0) {
+
+    my $rs = $dbsp->exec('ListCatalogsWithData',
+        root_id => 1,
+        org_id => 2,
+    );
+
     do {
         my @c;
         if ( $rs->idx ) {
@@ -266,7 +323,7 @@ if (0) {
 }
 
  
-if (1) {
+if (0) {
 
     my ( $catalogs, $data, $rv ) = $dbsp->exec('ListCatalogsWithData',
         root_id => 1,

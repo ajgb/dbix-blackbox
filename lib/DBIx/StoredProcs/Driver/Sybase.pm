@@ -5,15 +5,32 @@ use Moose;
 
 extends qw( DBIx::StoredProcs::Driver );
 
-sub error_handler {
+has '+_result_types' => (
+    default => sub {
+        +{
+            4043 => 'status_result',
+            4040 => 'row_result',
+        }
+    }
+);
+
+sub result_type {
     my $self = shift;
 
-    my($err, $severity, $state, $line, $server,
-           $proc, $msg, $sql, $err_type) = @_;
-
-    return 1;
+    return $self->_result_types->{ $self->sth->{syb_result_type} } || '';
 }
 
+sub has_more_result_sets {
+    my $self = shift;
+
+    return $self->sth->{syb_more_results};
+}
+
+sub columns {
+    my $self = shift;
+
+    return map { $_->{NAME} } $self->sth->syb_describe;
+}
 
 1;
 
