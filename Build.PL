@@ -8,11 +8,19 @@ my $builder = Module::Build->new(
     dist_author         => q{Alex J. G. Burzyński <ajgb@cpan.org>},
     dist_version_from   => 'lib/DBIx/BlackBox.pm',
     build_requires => {
-        'Test::More' => 0,
+        'Test::More' => 0.94,
+        'Moose' => 1.01,
         'MooseX::Role::Parameterized' => 0.18,
+        'namespace::autoclean' => 0.09,
+        'DBIx::Connector' => 0.33,
+        'DBI' => 1.609,
+        'Module::Find' => 0.10,
+        'DBD::Sybase' => 1.09,
     },
     add_to_cleanup      => [ 'DBIx-BlackBox-*' ],
     create_makefile_pl => 'traditional',
+    create_licence => 1,
+
 );
 
 $builder->create_build_script();
