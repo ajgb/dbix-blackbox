@@ -29,7 +29,7 @@ has '+_result_types' => (
 
 =head2 result_type
 
-Returns type of statement.
+Returns type of given database statement.
 
 =cut
 
@@ -41,7 +41,7 @@ sub result_type {
 
 =head2 has_more_result_sets
 
-Returns true if there are more resultsets.
+Returns true if there are more resultsets for given statement.
 
 =cut
 

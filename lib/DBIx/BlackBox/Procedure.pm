@@ -44,7 +44,7 @@ parameter name => (
 
 =head2 resultsets
 
-Names of the resultsets classes.
+Names of the resultsets classes (will be automatically loaded).
 
 isa: C<ArrayRef>.
 
@@ -57,6 +57,10 @@ parameter resultsets => (
 
 =head1 METHODS
 
+=head2 resultsets
+
+Returns a list of resultset classes registered with role. 
+
 =head2 exec
 
 Executes stored procedure and returns L<DBIx::BlackBox::Result> object.
@@ -67,6 +71,13 @@ role {
     my $p = shift;
     my %args = @_;
     my $consumer = $args{consumer};
+
+    Class::MOP::load_class( $_ )
+        for @{ $p->resultsets };
+
+    method 'resultsets' => sub {
+        @{ $p->resultsets };
+    };
 
     method 'exec' => sub {
         my ($self, $dbdriver) = @_;
@@ -97,7 +108,7 @@ role {
         return DBIx::BlackBox::Result->new(
             sth => $sth,
             db_driver => $dbdriver,
-            resultsets => $p->resultsets,
+            resultsets => [ $self->resultsets ],
         );
     }
 };

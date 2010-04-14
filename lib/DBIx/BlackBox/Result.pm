@@ -9,6 +9,7 @@ use namespace::autoclean;
 =head1 NAME
 
 DBIx::BlackBox::Result - result of executed stored procedure.
+
 =cut
 
 our $VERSION = '0.01';
@@ -98,7 +99,7 @@ has 'idx' => (
     } while ( $rs->next_resultset );
 
 Returns true if database statement has more resultsets and it is a row
-result (from select query).
+result (SELECT query).
 
 =cut
 
@@ -149,7 +150,7 @@ sub next_row {
 
 =head2 procedure_result
 
-Return value of executed stored procedure.
+Returns return value of executed stored procedure.
 
 =cut
 

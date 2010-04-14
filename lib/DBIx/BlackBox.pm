@@ -53,7 +53,6 @@ Create procedures classes. Attributes define stored procedure parameters.
         )],
     };
 
-
     has 'root_id' => (
         is => 'rw',
         isa => 'Int',
@@ -82,8 +81,7 @@ Create procedures classes. Attributes define stored procedure parameters.
         required => 1,
     );
 
-
-Describe result sets for procedures. Could (and should) be shared between
+Describe result sets for procedures. They could (and should) be shared between
 procedures.
 
     package MyDBBB::ResultSet::Catalogs;
@@ -162,6 +160,16 @@ or get all rows at once
 
     print "procedure result: $rv";
 
+=head1 ROLE PARAMETERS
+
+=head2 connect_info
+
+Database connection arguments passed to L<DBI/"connect">.
+
+Required.
+
+Note: currently only DBD::Sybase (MS SQL Server) is supported.
+
 =cut
 
 parameter connect_info => (
@@ -169,13 +177,30 @@ parameter connect_info => (
     required => 1,
 );
 
-=head1 ROLE PARAMETERS
+=head2 procedures_namespace
+
+All classes in provided namespace them will be automatically loaded.
+
+Defaults to name of the consumer of DBIx::BlackBox role with C<::Procedures>
+appended.
+
+Note: those classes need to consume DBIx::BlackBox::Procedure role.
+
+=cut
+
+parameter procedures_namespace => (
+    isa => 'Str',
+);
+
+=head1 ATTRIBUTES
 
 =head2 connect_info
 
-Database connection arguments passed to L<DBI/"connect">.
+Returns the value of role parameter L<"connect_info">.
 
-Note: currently only DBD::Sybase (MS SQL Server) is supported.
+=head2 procedures_namespace
+
+Returns the value of role parameter L<"procedures_namespace">.
 
 =head1 METHODS
 
@@ -183,10 +208,11 @@ Note: currently only DBD::Sybase (MS SQL Server) is supported.
 
     my $rs = $dbbb->exec($procedure_class, %args);
 
-Executes procedures defined by class in the
-C<join('::', ref $dbbb, 'Procedures')> namespace.
+Instantiates an object of the C<$procedure_class> (which is appended to
+L<"procedures_namespaces">) with arguments provided by C<%args> and executes
+procedure defined by class.
 
-Uses named paremeters.
+Procedures should used named paremeters only.
 
 =cut
 
@@ -202,8 +228,8 @@ L<http://www.unixodbc.org/>.
 
 =head2 FreeTDS
 
-Download dev release of FreeTDS from L<http://www.freetds.org> (at the time
-writing it the current version is freetds-0.83.dev.20100122).
+Download dev release of FreeTDS from L<http://www.freetds.org> (tested with
+freetds-0.83.dev.20100122).
 
     ./configure --with-unixodbc=/usr/local/ \
         --with-tdsver=8.0 --prefix=/usr/local/freetds
@@ -228,7 +254,8 @@ Install L<DBD::Sybase>.
     sudo make install
 
 If you want to test DBD::Sybase most likely you would need to modify tests
-that come with the module (some queries will not work with MS SQL Server).
+that come with the module (some queries in test files will not work with
+MS SQL Server).
 
 =cut
 
@@ -236,6 +263,26 @@ role {
     my $p = shift;
     my %args = @_;
     my $consumer = $args{consumer};
+
+    my $_proc_class_ns = $p->procedures_namespace ?
+        $p->procedures_namespace
+        :
+        join('::', $consumer->name, 'Procedures' );
+
+    {
+        my @mods = findallmod( $_proc_class_ns );
+        do {
+            my $proc_class = $_;
+
+            Class::MOP::load_class( $proc_class );
+            my $proc_meta = $proc_class->meta;
+
+            my $proc_role = 'DBIx::BlackBox::Procedure';
+            unless ( $proc_meta->does_role($proc_role) ) {
+                die "Class $proc_class does not consume $proc_role role\n";
+            }
+        } for @mods;
+    }
 
     has 'connect_info' => (
         traits => [qw( Array )],
@@ -255,21 +302,11 @@ role {
         lazy_build => 1,
     );
 
-    after 'new' => sub {
-        my $proc_class_ns = join('::', $consumer->name, 'Procedures' );
-        my @mods = findallmod( $proc_class_ns );
-        do {
-            my $proc_class = $_;
-
-            Class::MOP::load_class( $proc_class );
-            my $proc_meta = $proc_class->meta;
-
-            my $proc_role = 'DBIx::BlackBox::Procedure';
-            unless ( $proc_meta->does_role($proc_role) ) {
-                die "Class $proc_class does not consume $proc_role role\n";
-            }
-        } for @mods;
-    };
+    has 'procedures_namespace' => (
+        is => 'ro',
+        isa => 'Str',
+        default => $_proc_class_ns,
+    );
 
     method '_build__conn' => sub {
         my $self = shift;
@@ -290,7 +327,7 @@ role {
     method 'exec' => sub {
         my ($self, $name, %args) = @_;
 
-        my $proc_class = join('::', $consumer->name, 'Procedures', $name );
+        my $proc_class = join('::', $self->procedures_namespace, $name );
 
         my $proc = $proc_class->new( %args );
 
@@ -303,7 +340,8 @@ no MooseX::Role::Parameterized;
 =head1 CAVEATS
 
 Neither the stored procedures nor result sets classes can have
-attributes that would clash with Moose internals, e.g. I<new>.
+attributes/columns/parameters that would clash with Moose internals,
+e.g. I<new>.
 
 =head1 AUTHOR
 
@@ -314,7 +352,6 @@ Alex J. G. Burzyński, E<lt>ajgb at cpan.orgE<gt>
 Please report any bugs or feature requests to C<bug-dbix-blackbox at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBIx-BlackBox>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
 
 =head1 LICENSE AND COPYRIGHT
 
