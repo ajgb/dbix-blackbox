@@ -14,7 +14,7 @@ DBIx::BlackBox - access database with stored procedures only
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 

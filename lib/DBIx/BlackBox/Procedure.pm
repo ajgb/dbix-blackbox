@@ -12,7 +12,7 @@ DBIx::BlackBox::Procedure - role consumed by procedure classes.
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 ROLE PARAMETERS
@@ -65,6 +65,9 @@ Returns a list of resultset classes registered with role.
 
 Executes stored procedure and returns L<DBIx::BlackBox::Result> object.
 
+If C<$ENV{DBIBB_TRACE}> is true then the SQL about to be executed will be
+printed out to C<STDERR>.
+
 =cut
 
 role {
@@ -98,6 +101,9 @@ role {
         my $sth = $dbdriver->connector->run(
             fixup => sub {
                 my $dbh = shift;
+
+                print STDERR "$query [", join(', ', map { defined $_ ? $_ : 'NULL' } values %params), "]\n"
+                    if $ENV{DBIBB_TRACE};
 
                 my $sth = $dbh->prepare( $query );
                 $sth->execute( values %params );
