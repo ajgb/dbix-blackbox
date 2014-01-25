@@ -1,7 +1,7 @@
 package DBIx::BlackBox;
 
 use MooseX::Role::Parameterized;
-
+use Class::Load;
 use DBIx::Connector;
 use DBI;
 use Module::Find qw( findallmod );
@@ -144,7 +144,7 @@ execute stored procedure and get result object to iterate over
     print "procedure_result: ", $rs->procedure_result, "\n";
 
 or get all rows at once
-    
+
     my ( $catalogs, $data, $rv ) = $dbbb->exec('ListCatalogs',
         root_id => $root_id,
         org_id => $org_id,
@@ -274,7 +274,7 @@ role {
         do {
             my $proc_class = $_;
 
-            Class::MOP::load_class( $proc_class );
+            Class::Load::load_class( $proc_class );
             my $proc_meta = $proc_class->meta;
 
             my $proc_role = 'DBIx::BlackBox::Procedure';
@@ -317,7 +317,7 @@ role {
         my (undef, $driver) = DBI->parse_dsn( $dsn );
 
         my $db_class = "DBIx::BlackBox::Driver::$driver";
-        Class::MOP::load_class( $db_class );
+        Class::Load::load_class( $db_class );
 
         return $db_class->new(
             connector => DBIx::Connector->new( @coninfo )
