@@ -19,6 +19,7 @@ my $builder = Module::Build->new(
         'DBI' => 1.609,
         'Module::Find' => 0.08,
         'DBD::Sybase' => 1.09,
+        'Class::Load' => 0.20,
     },
     add_to_cleanup      => [ 'DBIx-BlackBox-*' ],
     create_makefile_pl => 'traditional',

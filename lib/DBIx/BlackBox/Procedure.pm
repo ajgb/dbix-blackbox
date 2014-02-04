@@ -1,6 +1,7 @@
 
 package DBIx::BlackBox::Procedure;
 
+use Class::Load;
 use MooseX::Role::Parameterized;
 use DBIx::BlackBox::Result;
 
@@ -59,7 +60,7 @@ parameter resultsets => (
 
 =head2 resultsets
 
-Returns a list of resultset classes registered with role. 
+Returns a list of resultset classes registered with role.
 
 =head2 exec
 
@@ -75,7 +76,7 @@ role {
     my %args = @_;
     my $consumer = $args{consumer};
 
-    Class::MOP::load_class( $_ )
+    Class::Load::load_class( $_ )
         for @{ $p->resultsets };
 
     method 'resultsets' => sub {
